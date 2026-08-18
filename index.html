@@ -3,174 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>فتح ملف PDF رابط مباشر</title>
-
+    <title>PDF Viewer</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
         html,
         body {
             margin: 0;
             padding: 0;
             width: 100%;
-            min-height: 100%;
-            background: #525659;
+            height: 100%;
+            overflow: hidden;
+            background: #222;
         }
-
-        #pdf-container {
+        iframe {
             width: 100%;
-            padding: 15px 0;
-            text-align: center;
-        }
-
-        .pdf-page {
+            height: 100%;
+            border: none;
             display: block;
-            margin: 0 auto 15px auto;
-            background: white;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-            max-width: 95%;
-            height: auto;
         }
-
-        #loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-family: Arial, sans-serif;
-            font-size: 18px;
-        }
-
-        #error {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-family: Arial, sans-serif;
-            font-size: 18px;
+        #msg {
+            color: #fff;
+            font-family: sans-serif;
             text-align: center;
-            width: 90%;
+            padding-top: 40px;
         }
     </style>
 </head>
-
 <body>
+    <div id="msg" style="display:none;">لم يتم تحديد ملف PDF. أضف ?file=اسم_الملف.pdf إلى الرابط.</div>
+    <iframe id="pdfFrame" style="display:none;"></iframe>
 
-    <div id="loading">
-        جاري تحميل الملف...
-    </div>
+    <script>
+        // قراءة اسم الملف من رابط الصفحة، مثال:
+        // https://bhosts.github.io/pdf-files/?file=testFile.pdf
+        const params = new URLSearchParams(window.location.search);
+        const fileName = params.get('file');
 
-    <div id="error">
-        تعذر تحميل ملف PDF
-    </div>
-
-    <div id="pdf-container"></div>
-
-
-    <script type="module">
-
-        import * as pdfjsLib from
-        "https://cdn.jsdelivr.net/npm/pdfjs-dist@6.2.108/build/pdf.mjs";
-
-
-        pdfjsLib.GlobalWorkerOptions.workerSrc =
-        "https://cdn.jsdelivr.net/npm/pdfjs-dist@6.2.108/build/pdf.worker.mjs";
-
-
-        const pdfFile = "testFile.pdf";
-
-        const container = document.getElementById("pdf-container");
-        const loading = document.getElementById("loading");
-        const error = document.getElementById("error");
-
-
-        async function loadPDF() {
-
-            try {
-
-                const loadingTask = pdfjsLib.getDocument(pdfFile);
-
-                const pdf = await loadingTask.promise;
-
-
-                for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
-
-                    const page = await pdf.getPage(pageNumber);
-
-
-                    const viewport = page.getViewport({
-                        scale: 1.5
-                    });
-
-
-                    const canvas = document.createElement("canvas");
-
-                    canvas.className = "pdf-page";
-
-                    const context = canvas.getContext("2d");
-
-
-                    const deviceScale = window.devicePixelRatio || 1;
-
-
-                    canvas.width =
-                        Math.floor(viewport.width * deviceScale);
-
-                    canvas.height =
-                        Math.floor(viewport.height * deviceScale);
-
-
-                    canvas.style.width =
-                        Math.floor(viewport.width) + "px";
-
-                    canvas.style.height =
-                        Math.floor(viewport.height) + "px";
-
-
-                    container.appendChild(canvas);
-
-
-                    const renderContext = {
-
-                        canvasContext: context,
-
-                        viewport: viewport,
-
-                        transform: deviceScale !== 1
-                            ? [deviceScale, 0, 0, deviceScale, 0, 0]
-                            : null
-                    };
-
-
-                    await page.render(renderContext).promise;
-
-                }
-
-
-                loading.style.display = "none";
-
-            } catch (e) {
-
-                console.error(e);
-
-                loading.style.display = "none";
-
-                error.style.display = "block";
-
-            }
-
+        if (fileName) {
+            const frame = document.getElementById('pdfFrame');
+            frame.src = fileName;
+            frame.style.display = 'block';
+        } else {
+            document.getElementById('msg').style.display = 'block';
         }
-
-
-        loadPDF();
-
     </script>
-
 </body>
 </html>
